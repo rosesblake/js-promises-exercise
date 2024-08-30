@@ -16,6 +16,17 @@ Promise.all(facts)
   .then((factArr) => factArr.forEach((f) => console.log(f.data)))
   .catch((err) => console.log(err));
 
+// ASYNC AWAIT VERSION
+async function getFourFacts(){
+  let f = []
+  let baseURL = "http://numbersapi.com";
+  for (let i = 0; i < 4; i++){
+    let f1 = await axios.get(`${baseURL}/4`)
+    f.push(f1.data)
+  }
+  f.forEach(fact => console.log(fact))
+}
+
 //   ## **Part 2: Deck of Cards**
 
 //   1. Make a request to the [Deck of Cards API](http://deckofcardsapi.com/) to request a single card from a newly shuffled deck. Once you have the card, ***console.log*** the value and the suit (e.g. “5 of spades”, “queen of diamonds”).
@@ -93,3 +104,76 @@ draw.addEventListener("click", () => {
 });
 
 shuffleDeck();
+
+
+
+// ASYNC AWAIT VERSION 
+const cardsUrl = "https://deckofcardsapi.com";
+
+let deckId = null;
+
+// Function to shuffle the deck
+async function shuffleDeck() {
+  try {
+    const res = await axios.get(`${cardsUrl}/api/deck/new/shuffle`);
+    deckId = res.data.deck_id;
+    console.log(deckId);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+// Function to draw a card
+async function drawCard() {
+  if (!deckId) {
+    console.log("Deck not initialized yet. Please shuffle the deck first.");
+    return;
+  }
+
+  try {
+    const res = await axios.get(`${cardsUrl}/api/deck/${deckId}/draw`);
+    let card = res.data.cards[0];
+    return `${card.value} of ${card.suit}`;
+  } catch (err) {
+    console.log("Error drawing card:", err);
+  }
+}
+
+// Get the buttons
+let shuffle = document.querySelector("#shuffle");
+let draw = document.querySelector("#draw");
+
+// Event listener to shuffle the deck
+shuffle.addEventListener("click", async () => {
+  await shuffleDeck();
+  let cardList = document.querySelector(".card-list");
+  if (cardList) {
+    cardList.remove();
+  }
+});
+
+// Event listener to draw a card
+draw.addEventListener("click", async () => {
+  const res = await drawCard();
+  if (res) {
+    // Check if the card list exists
+    let cardList = document.querySelector(".card-list");
+    if (!cardList) {
+      // Create and append the card list if it doesn't exist
+      cardList = document.createElement("ul");
+      cardList.classList.add("card-list");
+      document.body.append(cardList); // Append to the body or another container
+    }
+
+    // Create a new list item for the card and append it to the list
+    let newCard = document.createElement("li");
+    newCard.innerText = res;
+    cardList.append(newCard);
+  } else {
+    console.log("No more cards");
+  }
+});
+
+// Initialize the deck
+shuffleDeck();
+
